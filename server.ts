@@ -105,7 +105,6 @@ async function startServer() {
 
   // Render & Supabase Health Check Endpoint
   app.get('/api/health', async (_req, res) => {
-    await ensureDbReady();
     const dbStatus = getDbStatus();
     res.json({
       status: 'ok',
@@ -1454,36 +1453,35 @@ async function startServer() {
     });
   });
 
-  // Bind port 3000 immediately so health probes succeed without waiting for Vite compilation
-  httpServer.listen(PORT, '0.0.0.0', () => {
-    console.log(`KMFRI Research Management Server & WebSocket Hub running on http://localhost:${PORT}`);
-    ensureSeededFoundation().catch((err) => {
-      console.warn('Initial DB warm-up warning:', err?.message || err);
-    });
-  });
-
-  // Frontend middleware
+  // Production must use the artifact produced during Render's build phase.
   const distPath = path.join(__dirname, 'dist');
   const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
 
-  if (process.env.NODE_ENV !== 'production' || !distIndexExists) {
-    if (distIndexExists === false && process.env.NODE_ENV === 'production') {
-      console.warn(
-        'dist/index.html not found in production mode — falling back to Vite dev middleware. ' +
-        'Ensure your build step (e.g. bun run build) runs before starting the server for optimal performance.'
-      );
+  if (process.env.NODE_ENV === 'production') {
+    if (!distIndexExists) {
+      throw new Error('Production frontend build is missing: dist/index.html. Run npm run build before starting the server.');
     }
+    app.use(express.static(distPath));
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  } else {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
-  } else {
-    app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
   }
+
+  httpServer.listen(PORT, '0.0.0.0', () => {
+    console.log(`KMFRI Research Management Server & WebSocket Hub running on http://0.0.0.0:${PORT}`);
+    ensureSeededFoundation().catch((err) => {
+      console.warn('Initial DB warm-up warning:', err?.message || err);
+    });
+  });
 }
 
-startServer();
+startServer().catch((error) => {
+  console.error('Failed to start KMFRI server:', error);
+  process.exitCode = 1;
+});

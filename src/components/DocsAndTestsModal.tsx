@@ -232,8 +232,8 @@ export const DocsAndTestsModal: React.FC<DocsAndTestsModalProps> = ({ onClose })
                   </div>
                   <ol className="list-decimal list-inside space-y-1.5 text-slate-600 dark:text-slate-300">
                     <li>Connect your repository to Render using the included <code>render.yaml</code> Blueprint.</li>
-                    <li><strong>Static Site Frontend:</strong> Build Command <code>npm install &amp;&amp; npm run build</code>, Publish Directory <code>./dist</code>, and set <code>VITE_API_BASE_URL</code> to your API service URL.</li>
-                    <li><strong>Full-Stack / API Web Service:</strong> Build Command <code>npm install &amp;&amp; npm run build</code>, Start Command <code>npm start</code>, Health Check <code>/api/health</code>, and set <code>DATABASE_URL</code> to your Supabase URI.</li>
+                    <li><strong>Full-Stack Render Web Service:</strong> The included Blueprint builds the frontend and serves it with the API. It uses <code>npm ci &amp;&amp; npm run build</code>, starts with <code>npm start</code>, and checks <code>/api/health</code>.</li>
+                    <li>Set <code>DATABASE_URL</code> to your Supabase PostgreSQL connection string in the Render service environment.</li>
                   </ol>
                 </div>
               </div>
