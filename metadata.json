@@ -1,0 +1,6 @@
+{
+  "name": "KMFRI Scientists & Research Management Dashboard",
+  "description": "Institutional research management, project governance, grant tracking, GIS station mapping, and scientific output portal for the Kenya Marine and Fisheries Research Institute (KMFRI).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

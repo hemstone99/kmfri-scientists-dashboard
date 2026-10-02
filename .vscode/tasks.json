@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start KMFRI Dev Server",
+      "type": "npm",
+      "script": "dev",
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Start KMFRI Local DB Mode (Offline)",
+      "type": "npm",
+      "script": "dev:local",
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "Run Automated Unit Tests",
+      "type": "npm",
+      "script": "test",
+      "group": "test"
+    },
+    {
+      "label": "TypeScript Check (Lint)",
+      "type": "npm",
+      "script": "lint",
+      "group": "build"
+    }
+  ]
+}

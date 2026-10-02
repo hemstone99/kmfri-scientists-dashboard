@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 165" width="560" height="165" role="img" aria-label="KMFRI - Kenya Marine and Fisheries Research Institute">
+  <defs>
+    <linearGradient id="kmfriSeaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="45%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+    <clipPath id="emblemInnerClip">
+      <circle cx="88" cy="84" r="52" />
+    </clipPath>
+  </defs>
+
+  <!-- Inner Circle Water & Marine Symbols -->
+  <g clip-path="url(#emblemInnerClip)">
+    <rect x="30" y="30" width="116" height="110" fill="#ffffff" />
+    <!-- Ocean Water Lower Half -->
+    <path d="M 32,84 Q 48,80 64,84 T 96,84 T 128,84 T 148,84 L 148,145 L 32,145 Z" fill="url(#kmfriSeaGrad)" />
+    <!-- Subtle White Wave Ripples -->
+    <path d="M 42,95 Q 58,92 74,95 T 106,95 T 134,95" fill="none" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" opacity="0.8" />
+    <path d="M 48,107 Q 66,104 84,107 T 120,107" fill="none" stroke="#e0f2fe" stroke-width="1.8" stroke-linecap="round" opacity="0.75" />
+    <path d="M 55,119 Q 75,116 95,119 T 118,119" fill="none" stroke="#bae6fd" stroke-width="1.5" stroke-linecap="round" opacity="0.7" />
+
+    <!-- Left: Scientific Microscope Silhouette (Black) -->
+    <g fill="#0a0a0a">
+      <!-- Base -->
+      <path d="M 38,83 L 64,83 L 62,79 L 40,79 Z" />
+      <!-- Curved C-Arm -->
+      <path d="M 46,79 C 39,72 39,58 47,52 L 51,55 C 45,60 45,70 51,76 Z" />
+      <!-- Eyepiece & Body Tube (tilted) -->
+      <rect x="48" y="42" width="6" height="18" rx="1" transform="rotate(-28 51 51)" />
+      <rect x="45" y="38" width="8" height="4" rx="1" transform="rotate(-28 49 40)" />
+      <!-- Objective lenses -->
+      <rect x="54" y="58" width="4" height="8" rx="1" transform="rotate(15 56 62)" />
+      <!-- Stage -->
+      <rect x="47" y="67" width="16" height="2.8" rx="1" />
+    </g>
+
+    <!-- Center: Research Vessel / Ship Silhouette (KMFRI Royal Blue) -->
+    <g>
+      <!-- Hull -->
+      <path d="M 68,72 L 108,72 L 102,87 L 74,87 Z" fill="#2e4da7" stroke="#ffffff" stroke-width="1" />
+      <!-- Cabin / Bridge -->
+      <path d="M 74,56 L 102,56 L 104,72 L 72,72 Z" fill="#2e4da7" />
+      <!-- Bridge Windows -->
+      <rect x="76" y="60" width="9" height="6" rx="1" fill="#ffffff" />
+      <rect x="91" y="60" width="9" height="6" rx="1" fill="#ffffff" />
+      <!-- Upper Mast / Radar -->
+      <rect x="83" y="48" width="10" height="8" rx="1" fill="#2e4da7" />
+      <rect x="86" y="43" width="4" height="6" fill="#2e4da7" />
+      <!-- Bow wave highlight -->
+      <path d="M 70,86 Q 88,91 106,86" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+    </g>
+
+    <!-- Right: Coastal Mangrove Tree (Green Canopy + Brown Aerial Roots) -->
+    <g>
+      <!-- Aerial Prop Roots into water -->
+      <path d="M 122,74 C 117,82 114,91 113,98 M 123,74 C 121,84 120,92 120,100 M 125,74 C 127,83 129,92 131,99 M 124,78 C 118,86 126,88 125,97" fill="none" stroke="#6b3410" stroke-width="1.8" stroke-linecap="round" />
+      <!-- Trunk & Branches -->
+      <path d="M 123,76 L 123,65 M 123,69 L 116,62 M 123,68 L 130,61" fill="none" stroke="#5c2d0c" stroke-width="2.2" stroke-linecap="round" />
+      <!-- Lush Mangrove Canopy -->
+      <circle cx="116" cy="60" r="6" fill="#2e9b4f" />
+      <circle cx="124" cy="56" r="7" fill="#228b22" />
+      <circle cx="131" cy="61" r="6" fill="#2e9b4f" />
+      <circle cx="120" cy="63" r="5" fill="#3cb371" />
+      <circle cx="127" cy="64" r="5" fill="#3cb371" />
+    </g>
+  </g>
+
+  <!-- TOP ARCHING BLUE FISH (KMFRI Royal Marine Blue #2e4da7) -->
+  <g fill="#2e4da7">
+    <!-- Main curving body from left tail to right head -->
+    <path d="M 24,62 C 30,26 68,8 106,18 C 126,23 142,38 151,58 C 141,54 134,55 127,60 C 116,40 94,30 70,33 C 50,35 35,47 24,62 Z" />
+    <!-- Dorsal Fin along top crest -->
+    <path d="M 62,16 C 78,4 98,6 112,18 C 96,15 78,16 62,16 Z" />
+    <!-- Forked Tail Fin on top-left -->
+    <path d="M 27,57 L 10,49 L 21,64 L 9,68 L 29,65 Z" />
+    <!-- Pectoral Fin -->
+    <path d="M 116,44 L 103,52 L 122,52 Z" />
+    <!-- Pointed Marlin Bill / Snout -->
+    <path d="M 145,52 L 156,67 L 138,56 Z" />
+    <!-- White Eye -->
+    <circle cx="134" cy="46" r="3.2" fill="#ffffff" />
+    <circle cx="135" cy="46" r="1.4" fill="#2e4da7" />
+  </g>
+
+  <!-- BOTTOM ARCHING BLACK FISH (#0a0a0a) -->
+  <g fill="#0a0a0a">
+    <!-- Main curving body from right tail to left head -->
+    <path d="M 146,105 C 138,140 102,158 64,149 C 42,143 25,126 17,102 C 27,106 35,105 42,100 C 52,122 74,134 98,132 C 118,130 134,119 146,105 Z" />
+    <!-- Ventral / Dorsal Fin on bottom curve -->
+    <path d="M 65,148 C 82,160 104,158 116,144 C 100,148 82,149 65,148 Z" />
+    <!-- Forked Tail Fin on bottom-right -->
+    <path d="M 142,110 L 160,100 L 148,116 L 161,124 L 139,116 Z" />
+    <!-- Pectoral Fin -->
+    <path d="M 54,119 L 68,111 L 48,111 Z" />
+    <!-- White Eye -->
+    <circle cx="34" cy="116" r="3.2" fill="#ffffff" />
+    <circle cx="33" cy="116" r="1.4" fill="#0a0a0a" />
+  </g>
+
+  <!-- RIGHT SIDE OFFICIAL TYPOGRAPHY: KMFRI + Subheading -->
+  <text
+    x="172"
+    y="108"
+    fill="#2e4da7"
+    font-family="'Plus Jakarta Sans', 'Arial Black', Impact, sans-serif"
+    font-size="94"
+    font-weight="900"
+    letter-spacing="1.5"
+  >
+    KMFRI
+  </text>
+
+  <text
+    x="174"
+    y="142"
+    fill="#0a0a0a"
+    font-family="'Plus Jakarta Sans', Arial, sans-serif"
+    font-size="18.5"
+    font-weight="800"
+    letter-spacing="-0.2"
+  >
+    Kenya Marine and Fisheries Research Institute
+  </text>
+</svg>

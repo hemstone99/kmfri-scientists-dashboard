@@ -1,0 +1,35 @@
+# Render Blueprint for KMFRI Scientists & Research Management Dashboard
+# Compatible with Supabase PostgreSQL (DATABASE_URL) and Render Static Site / Web Service hosting.
+
+services:
+  # 1. Full-Stack / Backend API Service on Render (connects to Supabase PostgreSQL)
+  - type: web
+    name: kmfri-research-portal-api
+    runtime: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # Paste your Supabase Transaction/Session Pooler URI (postgresql://postgres.[ref]:[password]@aws-0-eu-west-2.pooler.supabase.com:6543/postgres)
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "*"
+
+  # 2. Optional Standalone Frontend Static Site on Render
+  - type: web
+    name: kmfri-research-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false # Set to your Render API service URL (e.g. https://kmfri-research-portal-api.onrender.com) if hosting frontend separately
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
