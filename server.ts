@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import { WebSocketServer, WebSocket } from 'ws';
@@ -1462,14 +1463,22 @@ async function startServer() {
   });
 
   // Frontend middleware
-  if (process.env.NODE_ENV !== 'production') {
+  const distPath = path.join(__dirname, 'dist');
+  const distIndexExists = fs.existsSync(path.join(distPath, 'index.html'));
+
+  if (process.env.NODE_ENV !== 'production' || !distIndexExists) {
+    if (distIndexExists === false && process.env.NODE_ENV === 'production') {
+      console.warn(
+        'dist/index.html not found in production mode — falling back to Vite dev middleware. ' +
+        'Ensure your build step (e.g. bun run build) runs before starting the server for optimal performance.'
+      );
+    }
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(__dirname, 'dist');
     app.use(express.static(distPath));
     app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
