@@ -1,0 +1,6 @@
+{
+  "name": "KMFRI Scientists & Research Management System",
+  "description": "Production-ready scientific research, project portfolio, grant funding, GIS location mapping, and institutional governance platform for the Kenya Marine and Fisheries Research Institute (KMFRI).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
