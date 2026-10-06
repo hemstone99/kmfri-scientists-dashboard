@@ -14,7 +14,7 @@ services:
   - type: web
     name: kmfri-research-management
     runtime: node
-    plan: starter
+    plan: free
     region: frankfurt
     branch: main
     autoDeploy: true
@@ -33,22 +33,18 @@ services:
       - key: NODE_VERSION
         value: "22.18.0"
 
-      # Set KMFRI_DATA_DIR to match the disk mountPath below.
+      # Free tier: no persistent disk. Empty KMFRI_DATA_DIR falls back to ./data (ephemeral).
+      # Enable Supabase mirror so records survive deploys via Postgres.
       - key: KMFRI_DATA_DIR
-        value: /data
+        value: ""
       - key: SESSION_SECRET
         generateValue: true
       - key: KMFRI_ALLOW_ROLE_SWITCH
         value: "false"
       - key: SUPABASE_MIRROR_ENABLED
-        value: "false"
+        value: "true"
 
       # Secrets: set these in the Render dashboard (they must not be committed).
       #   GEMINI_API_KEY
       #   KMFRI_INITIAL_ADMIN_PASSWORD  (>= 12 chars; otherwise generated and logged)
       #   NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY
-
-    disk:
-      name: kmfri-data
-      mountPath: /data
-      sizeGB: 1
