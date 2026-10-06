@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
-import { NavigationModule } from '../types/kmfri.ts';
+import { NavigationModule, PermissionCode, RoleCode } from '../types/kmfri.ts';
 import { KmfriLogo } from './KmfriLogo.tsx';
 
 interface NavItem {
@@ -30,6 +30,7 @@ interface NavItem {
   badge?: string;
   onSelect?: () => void;
   isSelected?: boolean;
+  adminOnly?: boolean;
 }
 
 export const Sidebar: React.FC = () => {
@@ -45,6 +46,7 @@ export const Sidebar: React.FC = () => {
     mobileNavOpen,
     setMobileNavOpen,
     onlineUserIds,
+    hasPermission,
   } = useAuth();
 
   const unreadCount =
@@ -54,7 +56,11 @@ export const Sidebar: React.FC = () => {
 
   const chatCount = db?.chat_messages?.length || 0;
 
-  const navItems: NavItem[] = [
+  const isSuperAdmin = user?.role_code === RoleCode.SUPER_ADMIN;
+  const canManageUsers = hasPermission(PermissionCode.USERS_MANAGE);
+  const canViewAudit = hasPermission(PermissionCode.AUDIT_VIEW);
+
+  const allNavItems: NavItem[] = [
     {
       key: 'inst_dashboard',
       id: 'dashboard',
@@ -83,6 +89,7 @@ export const Sidebar: React.FC = () => {
       id: 'scientists',
       label: 'Scientists & Registry',
       icon: Users,
+      adminOnly: true,
     },
     {
       key: 'profile',
@@ -168,8 +175,19 @@ export const Sidebar: React.FC = () => {
       id: 'administration',
       label: 'Admin & Audit Logs',
       icon: ShieldAlert,
+      adminOnly: true,
     },
   ];
+
+  const filteredNavItems = allNavItems.filter((item) => {
+    if (!item.adminOnly) return true;
+    if (!user) return false;
+    // Scientists & Registry requires USERS_MANAGE permission
+    if (item.id === 'scientists') return canManageUsers;
+    // Admin & Audit Logs requires AUDIT_VIEW permission
+    if (item.id === 'administration') return canViewAudit;
+    return true;
+  });
 
   const handleNavigate = (item: NavItem) => {
     setSelectedProjectId(null);
@@ -206,7 +224,7 @@ export const Sidebar: React.FC = () => {
         <div className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
           Research &amp; Performance
         </div>
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             item.isSelected !== undefined ? item.isSelected : activeModule === item.id;
@@ -249,7 +267,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Quick My Researcher Profile Shortcut */}
-      {user && (
+      {user && canManageUsers && (
         <div className="p-3 border-t border-slate-800/80 bg-slate-900/50 space-y-2">
           <button
             type="button"
