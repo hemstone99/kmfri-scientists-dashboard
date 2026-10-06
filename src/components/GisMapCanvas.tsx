@@ -31,7 +31,7 @@ import {
   KENYA_NATIONAL_BOUNDARY_GEOJSON,
   BATHYMETRY_ISOBATHS_GEOJSON,
   formatCoordinateTelemetry,
-} from '../data/gisGeoJson.ts';
+} from '../data/gisGeoJson';
 
 export type { KmfriStation };
 export { KMFRI_STATIONS };
