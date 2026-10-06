@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { scheduleSupabaseMirror } from './supabase.ts';
+import { sendEmail, isSmtpConfigured } from './email.ts';
 import {
   DatabaseSnapshot,
   RoleCode,
@@ -806,10 +807,32 @@ export function dispatchInstitutionalEmail(
     type: params.type,
     body_html: params.body_html,
     body_text: params.body_text,
-    status: 'DELIVERED',
+    status: 'QUEUED',
     sent_at: new Date().toISOString(),
     metadata: params.metadata,
   };
   db.email_dispatches.unshift(emailItem);
+
+  if (isSmtpConfigured()) {
+    sendEmail({
+      to: params.recipient_email,
+      toName: params.recipient_name,
+      subject: params.subject,
+      html: params.body_html,
+      text: params.body_text,
+      type: params.type,
+    }).then((result) => {
+      emailItem.status = result.success ? 'SENT' : 'FAILED';
+      if (!result.success) {
+        emailItem.metadata = { ...emailItem.metadata, error: result.error };
+      }
+    }).catch((err) => {
+      emailItem.status = 'FAILED';
+      emailItem.metadata = { ...emailItem.metadata, error: err.message };
+    });
+  } else {
+    emailItem.status = 'LOGGED_ONLY';
+  }
+
   return emailItem;
 }

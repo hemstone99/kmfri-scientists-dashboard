@@ -8,6 +8,12 @@
 # instance set KMFRI_DATA_DIR to an empty value so the store falls back to the
 # ephemeral ./data directory, and enable SUPABASE_MIRROR_ENABLED=true once the
 # Postgres mirror is verified so records are recoverable from the mirror.
+#
+# DATA PERSISTENCE ON FREE TIER:
+# - Local JSON (data/kmfri_db.json, data/kmfri_auth.json) is EPHEMERAL - wiped on every deploy
+# - Supabase mirror (SUPABASE_MIRROR_ENABLED=true) persists to PostgreSQL
+# - Run supabase/migrations/0001_kmfri_schema.sql in Supabase SQL Editor first
+# - If mirror fails, data is lost on deploy. Upgrade to Starter plan for persistent disk.
 # =============================================================================
 
 services:
@@ -43,6 +49,13 @@ services:
         value: "false"
       - key: SUPABASE_MIRROR_ENABLED
         value: "true"
+
+      # SMTP Configuration (set these in Render dashboard for email delivery)
+      #   SMTP_HOST (e.g. smtp.gmail.com, smtp.office365.com)
+      #   SMTP_PORT (587 for TLS, 465 for SSL)
+      #   SMTP_USER (email address)
+      #   SMTP_PASS (app password or SMTP password)
+      #   SMTP_FROM (optional, default: "KMFRI System <SMTP_USER>")
 
       # Secrets: set these in the Render dashboard (they must not be committed).
       #   GEMINI_API_KEY
