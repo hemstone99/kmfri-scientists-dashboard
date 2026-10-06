@@ -10,4 +10,4 @@ supabase/.temp/
 
 # Runtime data store: contains credential hashes (data/kmfri_auth.json),
 # audit logs, notifications and dispatched email bodies. Never commit.
-data/
+/data/
