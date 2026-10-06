@@ -19,12 +19,17 @@ services:
     branch: main
     autoDeploy: true
 
-    buildCommand: npm ci --legacy-peer-deps
+    # npm ci installs dependencies; npm run build produces dist/ (client bundle
+    # plus the esbuild server bundle). dist/ is gitignored, so the build step
+    # is mandatory - without it the start command has no dist/server.js.
+    buildCommand: npm ci --legacy-peer-deps && npm run build
     startCommand: node dist/server.js
 
     healthCheckPath: /api/health
 
     envVars:
+      - key: NODE_ENV
+        value: "production"
       - key: NODE_VERSION
         value: "22.18.0"
 
