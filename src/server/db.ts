@@ -784,7 +784,7 @@ export function userHasPermission(db: DatabaseSnapshot, user: UserProfile, permi
   );
 }
 
-export function dispatchInstitutionalEmail(
+export async function dispatchInstitutionalEmail(
   db: DatabaseSnapshot,
   params: {
     recipient_email: string;
@@ -795,7 +795,7 @@ export function dispatchInstitutionalEmail(
     body_text: string;
     metadata?: Record<string, any>;
   }
-): EmailDispatch {
+): Promise<EmailDispatch> {
   if (!Array.isArray(db.email_dispatches)) {
     db.email_dispatches = [];
   }
@@ -807,32 +807,29 @@ export function dispatchInstitutionalEmail(
     type: params.type,
     body_html: params.body_html,
     body_text: params.body_text,
-    status: 'QUEUED',
+    status: 'PENDING',
     sent_at: new Date().toISOString(),
     metadata: params.metadata,
   };
   db.email_dispatches.unshift(emailItem);
 
   if (isSmtpConfigured()) {
-    sendEmail({
+    const result = await sendEmail({
       to: params.recipient_email,
       toName: params.recipient_name,
       subject: params.subject,
       html: params.body_html,
       text: params.body_text,
       type: params.type,
-    }).then((result) => {
-      emailItem.status = result.success ? 'SENT' : 'FAILED';
-      if (!result.success) {
-        emailItem.metadata = { ...emailItem.metadata, error: result.error };
-      }
-    }).catch((err) => {
-      emailItem.status = 'FAILED';
-      emailItem.metadata = { ...emailItem.metadata, error: err.message };
     });
+    emailItem.status = result.success ? 'SENT' : 'FAILED';
+    if (!result.success) {
+      emailItem.metadata = { ...emailItem.metadata, error: result.error };
+    }
   } else {
-    emailItem.status = 'LOGGED_ONLY';
+    emailItem.metadata = { ...emailItem.metadata, error: 'SMTP not configured' };
   }
 
+  saveDatabase(db);
   return emailItem;
 }

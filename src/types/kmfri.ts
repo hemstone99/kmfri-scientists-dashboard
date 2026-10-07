@@ -437,7 +437,7 @@ export interface EmailDispatch {
   type: 'LOGIN_ALERT' | 'PASSWORD_RESET_CODE' | 'PASSWORD_RESET_CONFIRMATION' | 'PASSWORD_CHANGED' | 'PROFILE_UPDATED';
   body_html: string;
   body_text: string;
-  status: 'DELIVERED' | 'SENT';
+  status: 'DELIVERED' | 'SENT' | 'FAILED' | 'PENDING';
   sent_at: string;
   metadata?: Record<string, any>;
 }

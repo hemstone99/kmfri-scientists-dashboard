@@ -23,7 +23,7 @@ export const KmfriLogo: React.FC<KmfriLogoProps> = ({
   }[size];
 
   const isWhite = variant === 'white';
-  const subtitleColor = isWhite ? '#f1f5f9' : '#000000';
+  const subtitleColor = isWhite ? '#f1f5f9' : 'var(--kmfri-logo-subtitle)';
 
   // Crisp Vector Emblem: Dual leaping fish circle + RV Mtafiti + Microscope + Mangrove
   const emblemSvg = (
@@ -142,9 +142,9 @@ export const KmfriLogo: React.FC<KmfriLogoProps> = ({
         <div
           className={`font-black tracking-tight ${scaleConfig.letterSize}`}
           style={{
-            color: '#3B5BDB',
+            color: 'var(--kmfri-logo-word)',
             fontFamily: "'Arial Black', 'Impact', -apple-system, sans-serif",
-            textShadow: '2px 3px 3px rgba(0, 0, 0, 0.35)',
+            textShadow: '2px 3px 3px var(--kmfri-logo-shadow)',
             letterSpacing: '-0.03em',
           }}
         >

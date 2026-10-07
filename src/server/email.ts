@@ -72,7 +72,19 @@ export interface EmailParams {
   subject: string;
   html: string;
   text: string;
-  type?: 'SYSTEM' | 'PASSWORD_RESET' | 'WELCOME' | 'NOTIFICATION' | 'REPORT_REMINDER' | 'APPROVAL' | 'CUSTOM';
+  type?:
+    | 'SYSTEM'
+    | 'PASSWORD_RESET'
+    | 'WELCOME'
+    | 'NOTIFICATION'
+    | 'REPORT_REMINDER'
+    | 'APPROVAL'
+    | 'CUSTOM'
+    | 'LOGIN_ALERT'
+    | 'PASSWORD_RESET_CODE'
+    | 'PASSWORD_RESET_CONFIRMATION'
+    | 'PASSWORD_CHANGED'
+    | 'PROFILE_UPDATED';
 }
 
 export async function sendEmail(params: EmailParams): Promise<{ success: boolean; messageId?: string; error?: string }> {

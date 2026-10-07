@@ -17,9 +17,10 @@ import {
   Search,
   Shield,
   Sliders,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.tsx';
-import { AuditLog, PermissionCode, RoleCode } from '../types/kmfri.ts';
+import { AuditLog, PermissionCode, RoleCode, UserProfile } from '../types/kmfri.ts';
 import { exportToCSV, exportToExcel } from '../utils/exportUtils.ts';
 import { UserAvatar } from './UserAvatar.tsx';
 
@@ -95,7 +96,7 @@ function classifyAuditAction(action: string): {
 }
 
 export function AdminModule() {
-  const { db, apiFetch, refreshData, hasPermission, showToast, setActiveModule, onlineUserIds } =
+  const { db, user, apiFetch, refreshData, hasPermission, showToast, setActiveModule, onlineUserIds } =
     useAuth();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('audit_logs');
@@ -142,6 +143,23 @@ export function AdminModule() {
       showToast(err.message || 'Failed to refresh daily audit logs', 'error');
     } finally {
       setRefreshingDaily(false);
+    }
+  };
+
+  const handleDeleteUser = async (target: UserProfile) => {
+    const confirmed = window.confirm(
+      `Permanently delete ${target.full_name} (${target.email})? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const result = await apiFetch<{ message: string }>(`/users/${target.id}`, {
+        method: 'DELETE',
+      });
+      await refreshData();
+      showToast(result.message || `Deleted account for ${target.full_name}`, 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete account', 'error');
     }
   };
 
@@ -879,6 +897,17 @@ export function AdminModule() {
                             <KeyRound className="w-3 h-3" />
                             <span>Reset Password</span>
                           </button>
+                          {u.id !== user?.id && u.role_code !== RoleCode.SUPER_ADMIN && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteUser(u)}
+                              className="px-2 py-1 rounded border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-[11px] flex items-center gap-1"
+                              title="Permanently delete account"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              <span>Delete</span>
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>

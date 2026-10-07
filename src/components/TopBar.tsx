@@ -218,11 +218,11 @@ export const TopBar: React.FC = () => {
       return;
     }
     try {
-      await apiFetch('/auth/change-password', {
+      const res = await apiFetch<{ message: string }>('/auth/change-password', {
         method: 'POST',
         body: JSON.stringify({ new_password: newPassword.trim() }),
       });
-      showToast('Password updated successfully!');
+      showToast(res.message || 'Password updated successfully.');
       setPasswordModalOpen(false);
       setNewPassword('');
       setConfirmPassword('');

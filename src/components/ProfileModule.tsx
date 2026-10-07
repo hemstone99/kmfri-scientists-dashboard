@@ -206,7 +206,7 @@ export const ProfileModule: React.FC = () => {
 
     setSavingPassword(true);
     try {
-      const res = await apiFetch('/auth/change-password', {
+      const res = await apiFetch<{ message: string }>('/auth/change-password', {
         method: 'POST',
         body: JSON.stringify({
           current_password: currentPassword || undefined,
@@ -218,7 +218,7 @@ export const ProfileModule: React.FC = () => {
         type: 'success',
         message: res.message || 'Password changed successfully! A confirmation email was automatically dispatched.',
       });
-      showToast('Password updated successfully. Confirmation email dispatched.', 'success');
+      showToast(res.message || 'Password updated successfully.', 'success');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');

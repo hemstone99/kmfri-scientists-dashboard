@@ -716,9 +716,10 @@ apiRouter.post('/users', requireAuth, requirePermission(PermissionCode.USERS_MAN
   const staffNumber = String(body.staff_number ?? '').trim().toUpperCase();
   const email = String(body.email ?? '').trim().toLowerCase();
   const fullName = String(body.full_name ?? '').trim();
+  const initialPassword = String(body.password ?? '');
 
-  if (!staffNumber || !email || !fullName) {
-    res.status(400).json({ error: 'Staff number, email, and full name are required.' });
+  if (!staffNumber || !email || !fullName || initialPassword.length < 8) {
+    res.status(400).json({ error: 'Staff number, email, full name, and an initial password of at least 8 characters are required.' });
     return;
   }
 
@@ -761,10 +762,6 @@ apiRouter.post('/users', requireAuth, requirePermission(PermissionCode.USERS_MAN
   };
 
   db.users.unshift(newUser);
-  // No default password in source: admins either supply one or a strong one is generated
-  const requestedPassword = String(body.password || '').trim();
-  const passwordWasGenerated = requestedPassword.length < 8;
-  const initialPassword = passwordWasGenerated ? generateStrongPassword() : requestedPassword;
   creds.push({
     user_id: newUser.id,
     email: newUser.email,
@@ -791,11 +788,6 @@ apiRouter.post('/users', requireAuth, requirePermission(PermissionCode.USERS_MAN
   });
 
   saveDatabase(db);
-  if (passwordWasGenerated) {
-    // Surface the generated password once so the administrator can hand it over securely.
-    res.status(201).json({ ...newUser, initial_password: initialPassword });
-    return;
-  }
   res.status(201).json(newUser);
 });
 
@@ -947,7 +939,7 @@ apiRouter.post('/users/:id/avatar', requireAuth, (req: AuthenticatedRequest, res
 });
 
 // Self-Service Password Change / Reset for Logged-In Scientists & Users
-apiRouter.post('/auth/change-password', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+apiRouter.post('/auth/change-password', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const { current_password, new_password } = req.body ?? {};
   if (!new_password || String(new_password).length < 6) {
     res.status(400).json({ error: 'New password must be at least 6 characters.' });
@@ -963,7 +955,7 @@ apiRouter.post('/auth/change-password', requireAuth, (req: AuthenticatedRequest,
   }
 
   let cred = creds.find((c) => c.user_id === user.id || c.email.toLowerCase() === user.email.toLowerCase());
-  if (current_password && cred && cred.password_hash !== hashPassword(String(current_password))) {
+  if (current_password && (!cred || !verifyPassword(String(current_password), cred.password_hash).valid)) {
     res.status(400).json({ error: 'Current password provided is incorrect.' });
     return;
   }
@@ -992,7 +984,7 @@ apiRouter.post('/auth/change-password', requireAuth, (req: AuthenticatedRequest,
   });
 
   // Automated Password Changed Email Dispatch
-  dispatchInstitutionalEmail(db, {
+  const emailDispatch = await dispatchInstitutionalEmail(db, {
     recipient_email: user.email,
     recipient_name: `${user.title || ''} ${user.full_name}`.trim(),
     subject: '✅ KMFRI Account Security: Your Password Was Successfully Updated',
@@ -1034,7 +1026,12 @@ apiRouter.post('/auth/change-password', requireAuth, (req: AuthenticatedRequest,
   });
 
   saveDatabase(db);
-  res.json({ success: true, message: 'Your password has been updated and a confirmation email was dispatched.' });
+  const emailMessage = emailDispatch.status === 'SENT'
+    ? 'A confirmation email was sent to your registered address.'
+    : emailDispatch.status === 'FAILED'
+      ? 'The password changed, but SMTP could not deliver the confirmation email.'
+      : 'The password changed, but SMTP is not configured, so no email was sent.';
+  res.json({ success: true, message: `Your password has been updated. ${emailMessage}` });
 });
 
 // Get User's Automated Email Dispatches (Mailbox / Security Log)
@@ -1129,6 +1126,52 @@ apiRouter.post('/users/:id/reset-password', requireAuth, requirePermission(Permi
 
   saveDatabase(db);
   res.json({ success: true, temporary_password: newPassword });
+});
+
+// Admin Delete User Account
+apiRouter.delete('/users/:id', requireAuth, requirePermission(PermissionCode.USERS_MANAGE), (req: AuthenticatedRequest, res: Response) => {
+  const db = loadDatabase();
+  const target = db.users.find((u) => u.id === req.params.id);
+  if (!target) {
+    res.status(404).json({ error: 'User not found.' });
+    return;
+  }
+  if (target.id === req.user!.id) {
+    res.status(400).json({ error: 'You cannot delete your own administrator account.' });
+    return;
+  }
+  if (target.role_code === RoleCode.SUPER_ADMIN) {
+    res.status(400).json({ error: 'Cannot delete Super Admin accounts.' });
+    return;
+  }
+
+  // Remove user from all associated data
+  db.users = db.users.filter((u) => u.id !== target.id);
+  db.project_members = db.project_members.filter((pm) => pm.user_id !== target.id);
+  db.project_milestones = db.project_milestones.filter((m) => m.owner_id !== target.id);
+  db.research_activities = db.research_activities.filter((a) => a.scientist_id !== target.id);
+  db.reports = db.reports.filter((r) => r.scientist_id !== target.id);
+  db.output_authors = db.output_authors.filter((oa) => oa.user_id !== target.id);
+  db.chat_messages = db.chat_messages.filter((m) => m.sender_id !== target.id);
+  db.notifications = db.notifications.filter((n) => n.recipient_user_id !== target.id);
+  db.audit_logs = db.audit_logs.filter((al) => al.actor_user_id !== target.id);
+
+  // Remove credentials
+  const creds = loadCredentials();
+  saveCredentials(creds.filter((c) => c.user_id !== target.id));
+
+  appendAuditLog(db, {
+    actor: req.user!,
+    action: 'USER_ACCOUNT_DELETED',
+    entity_type: 'users',
+    entity_id: target.id,
+    summary: `Administrator ${req.user!.email} permanently deleted account for ${target.full_name} (${target.email}, ${target.staff_number})`,
+    metadata: { deleted_staff_number: target.staff_number, deleted_email: target.email, deleted_role: target.role_code },
+  });
+
+  saveDatabase(db);
+  broadcastRealtimeEvent('db:updated', { entity: 'users', action: 'deleted', id: target.id });
+  res.json({ success: true, message: `Account for ${target.full_name} (${target.staff_number}) permanently deleted.` });
 });
 
 // =============================================================================

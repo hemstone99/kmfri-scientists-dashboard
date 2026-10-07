@@ -6,6 +6,15 @@
   :root {
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --kmfri-logo-word: #3b5bdb;
+    --kmfri-logo-subtitle: #0f172a;
+    --kmfri-logo-shadow: rgba(0, 0, 0, 0.35);
+  }
+
+  .dark {
+    --kmfri-logo-word: #9bb5ff;
+    --kmfri-logo-subtitle: #f8fafc;
+    --kmfri-logo-shadow: rgba(0, 0, 0, 0.6);
   }
 
   body {

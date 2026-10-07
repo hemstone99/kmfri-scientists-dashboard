@@ -35,6 +35,7 @@ import {
   Power,
   Search,
   Trophy,
+  Trash2,
   UserPlus,
   X,
 } from 'lucide-react';
@@ -61,7 +62,7 @@ const scientistSchema = z.object({
   full_name: z.string().min(3, 'Full name is required'),
   title: z.string().min(1, 'Title is required (Dr., Prof., Mr., Ms.)'),
   email: z.string().email('Valid institutional email is required'),
-  password: z.string().optional(),
+  password: z.string().optional().refine((value) => !value || value.length >= 8, 'Initial password must be at least 8 characters'),
   phone: z.string().optional(),
   position: z.string().min(2, 'Position/Rank is required'),
   role_code: z.nativeEnum(RoleCode),
@@ -249,6 +250,10 @@ export const ScientistsModule: React.FC = () => {
   };
 
   const onSubmitScientist = async (values: ScientistFormValues) => {
+    if (!editingScientist && !values.password) {
+      showToast('An initial password of at least 8 characters is required', 'error');
+      return;
+    }
     try {
       const payload = {
         ...values,
@@ -324,14 +329,14 @@ export const ScientistsModule: React.FC = () => {
       return;
     }
     try {
-      await apiFetch('/auth/change-password', {
+      const res = await apiFetch<{ message: string }>('/auth/change-password', {
         method: 'POST',
         body: JSON.stringify({
           current_password: currentPasswordInput || undefined,
           new_password: selfNewPasswordInput.trim(),
         }),
       });
-      showToast('Your password has been updated and logged to the security audit trail.');
+      showToast(res.message || 'Your password has been updated.');
       setSelfPasswordModalOpen(false);
       setCurrentPasswordInput('');
       setSelfNewPasswordInput('');
@@ -537,6 +542,26 @@ export const ScientistsModule: React.FC = () => {
                   title="Reset Password"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {canManageUsers && sci.id !== user?.id && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (confirm(`Permanently delete account for ${sci.full_name} (${sci.staff_number})? This cannot be undone.`)) {
+                      try {
+                        await apiFetch(`/users/${sci.id}`, { method: 'DELETE' });
+                        showToast(`Deleted account for ${sci.full_name}`);
+                        await refreshData();
+                      } catch (err: any) {
+                        showToast(err.message || 'Delete failed', 'error');
+                      }
+                    }
+                  }}
+                  className="p-1 rounded border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50"
+                  title="Delete Account (Permanent)"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -1715,13 +1740,19 @@ export const ScientistsModule: React.FC = () => {
                 </div>
                 {!editingScientist ? (
                   <div>
-                    <label className="block font-medium mb-1">Initial Password</label>
+                    <label className="block font-medium mb-1">Initial Password (minimum 8 characters)</label>
                     <input
-                      type="text"
+                      type="password"
                       {...register('password')}
-                      placeholder="Default: Kmfri@2025!"
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                      placeholder="Set an initial password"
                       className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 font-mono"
                     />
+                    {errors.password && (
+                      <p className="text-rose-500 mt-1">{errors.password.message}</p>
+                    )}
                   </div>
                 ) : (
                   <div>
