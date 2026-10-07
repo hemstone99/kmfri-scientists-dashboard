@@ -41,6 +41,7 @@ import {
   UserProfile,
 } from '../types/kmfri.ts';
 import { GisMapCanvas } from './GisMapCanvas.tsx';
+import { ExecutiveDashboard } from './ExecutiveDashboard.tsx';
 import { exportToCSV, exportToExcel, exportToInstitutionalReportHTML } from '../utils/exportUtils.ts';
 
 const OCS_DIRECTORATE_ID = '30000000-0000-4000-8000-000000000001';
@@ -60,6 +61,7 @@ export function DashboardModule() {
 
   // Global Dashboard Filters
   const [yearFilter, setYearFilter] = useState<string>('all');
+  const [currencyFilter, setCurrencyFilter] = useState<'KES' | 'USD' | 'EUR' | 'GBP'>('KES');
   const [directorateFilter, setDirectorateFilter] = useState<string>('all');
   const [scientistFilter, setScientistFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -139,14 +141,13 @@ export function DashboardModule() {
   const filteredFunding = useMemo(() => {
     if (!db) return [];
     return db.funding.filter((g) => {
+      if (g.currency !== currencyFilter) return false;
       if (funderFilter !== 'all' && g.funder_id !== funderFilter) return false;
       if (yearFilter !== 'all' && !g.award_date.startsWith(yearFilter)) return false;
-      if (filteredProjects.length > 0 || effectiveDirectorateFilter !== 'all') {
-        if (!filteredProjectIds.has(g.project_id)) return false;
-      }
+      if (!filteredProjectIds.has(g.project_id)) return false;
       return true;
     });
-  }, [db, funderFilter, yearFilter, filteredProjects.length, effectiveDirectorateFilter, filteredProjectIds]);
+  }, [db, currencyFilter, funderFilter, yearFilter, filteredProjectIds]);
 
   const filteredReports = useMemo(() => {
     if (!db) return [];
@@ -293,6 +294,7 @@ export function DashboardModule() {
 
   const resetFilters = () => {
     setYearFilter('all');
+    setCurrencyFilter('KES');
     setDirectorateFilter('all');
     setScientistFilter('all');
     setStatusFilter('all');
@@ -346,7 +348,7 @@ export function DashboardModule() {
           </div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">
             {dashboardMode === 'institution'
-              ? 'Institution-Wide Research & Governance Dashboard'
+              ? 'Director General’s Office — KMFRI CEO Dashboard'
               : dashboardMode === 'ocs'
               ? 'Head of Oceans & Coastal Systems — Directorate Dashboard'
               : 'Scientist Research Operations Workspace'}
@@ -442,7 +444,7 @@ export function DashboardModule() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-7 gap-3">
           <div>
             <label className="block text-[11px] text-slate-500 mb-1">Year</label>
             <select
@@ -545,9 +547,39 @@ export function DashboardModule() {
               ))}
             </select>
           </div>
+
+          <div>
+            <label className="block text-[11px] text-slate-500 mb-1">Funding Currency</label>
+            <select
+              value={currencyFilter}
+              onChange={(e) => setCurrencyFilter(e.target.value as typeof currencyFilter)}
+              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg"
+            >
+              <option value="KES">KES</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
         </div>
       </div>
 
+      {dashboardMode === 'institution' ? (
+        <ExecutiveDashboard
+          db={db}
+          projects={filteredProjects}
+          funding={filteredFunding}
+          reports={filteredReports}
+          currency={currencyFilter}
+          onSelectDirectorate={setDirectorateFilter}
+          onOpenProject={(projectId) => {
+            setSelectedProjectId(projectId);
+            setActiveModule('projects');
+          }}
+          onOpenModule={setActiveModule}
+        />
+      ) : (
+        <>
       {/* 6 Core KPI Cards with Interactive Drill-Down */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <button
@@ -1421,6 +1453,8 @@ export function DashboardModule() {
           )}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

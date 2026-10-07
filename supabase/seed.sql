@@ -77,15 +77,9 @@ INSERT INTO public.users (
     '+254 20 8021560', 'Mombasa Headquarters (English Point)', TRUE, FALSE, FALSE
   ),
   (
-    '00000000-0000-4000-8000-000000000002', 'SYS-ADMIN-02', 'admin@kmfri.go.ke',
-    'KMFRI Institutional Administrator', 'Sys.', 'Senior Systems Administrator',
-    '10000000-0000-4000-8000-000000000001', 'SUPER_ADMIN',
-    '+254 20 8021560', 'Mombasa Headquarters (English Point)', TRUE, FALSE, FALSE
-  ),
-  (
-    '00000000-0000-4000-8000-000000000003', 'SYS-ADMIN-03', 'montanacode953@gmail.com',
-    'System Administrator (Montana)', 'Sys.', 'Lead Systems Engineer & Administrator',
-    '10000000-0000-4000-8000-000000000001', 'SUPER_ADMIN',
+    '00000000-0000-4000-8000-000000000004', 'SYS-DG-01', 'dg@kmfri.go.ke',
+    'Director General', 'Prof.', 'Director General / Chief Executive Officer',
+    '10000000-0000-4000-8000-000000000003', 'DIRECTOR',
     '+254 20 8021560', 'Mombasa Headquarters (English Point)', TRUE, FALSE, FALSE
   )
 ON CONFLICT (email) DO NOTHING;

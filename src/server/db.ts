@@ -104,6 +104,8 @@ const ROLE_IDS: Record<RoleCode, string> = {
   [RoleCode.VIEWER]: '10000000-0000-4000-8000-000000000006',
 };
 
+const DIRECTOR_GENERAL_ID = '00000000-0000-4000-8000-000000000004';
+
 const PERMISSION_DEFS: Array<{ id: string; code: PermissionCode; module: string; description: string }> = [
   { id: '20000000-0000-4000-8000-000000000001', code: PermissionCode.USERS_MANAGE, module: 'Administration', description: 'Create, edit, deactivate, and reactivate scientist and user accounts' },
   { id: '20000000-0000-4000-8000-000000000002', code: PermissionCode.USERS_RESET_PASSWORD, module: 'Administration', description: 'Reset user account passwords and clear lockouts' },
@@ -435,7 +437,29 @@ function createReferenceSeedDatabase(): DatabaseSnapshot {
     role_permissions,
     directorates,
     research_areas,
-    users: [bootstrapAdmin],
+    users: [
+      bootstrapAdmin,
+      {
+        id: DIRECTOR_GENERAL_ID,
+        staff_number: 'SYS-DG-01',
+        email: 'dg@kmfri.go.ke',
+        full_name: 'Director General',
+        title: 'Prof.',
+        position: 'Director General / Chief Executive Officer',
+        role_id: ROLE_IDS[RoleCode.DIRECTOR],
+        role_code: RoleCode.DIRECTOR,
+        directorate_id: null,
+        research_area_id: null,
+        phone: '+254 20 8021560',
+        office_station: 'Mombasa Headquarters (English Point)',
+        is_active: true,
+        is_operational_scientist: false,
+        last_login_at: null,
+        password_reset_required: false,
+        created_at: now,
+        updated_at: now,
+      },
+    ],
     funders: [],
     projects: [],
     project_members: [],
@@ -486,11 +510,17 @@ export function loadDatabase(): DatabaseSnapshot {
     // Bootstrap credential: no password is hardcoded in source. Use
     // KMFRI_INITIAL_ADMIN_PASSWORD, or read the generated password from the server log.
     const bootstrapPassword = resolveInitialAdminPassword();
+    const dgPassword = process.env.KMFRI_DG_INITIAL_PASSWORD || generateStrongPassword();
     const initialCreds: AuthCredentialRecord[] = [
       {
         user_id: '00000000-0000-4000-8000-000000000001',
         email: 'sysadmin@kmfri.go.ke',
         password_hash: hashPassword(bootstrapPassword),
+      },
+      {
+        user_id: DIRECTOR_GENERAL_ID,
+        email: 'dg@kmfri.go.ke',
+        password_hash: hashPassword(dgPassword),
       },
     ];
     fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(initialCreds, null, 2), 'utf-8');
@@ -498,6 +528,11 @@ export function loadDatabase(): DatabaseSnapshot {
       console.warn(
         `[auth] Bootstrap admin "sysadmin@kmfri.go.ke" created. Generated password: ${bootstrapPassword}\n` +
           '       Set KMFRI_INITIAL_ADMIN_PASSWORD to choose this yourself, then change it after first sign-in.'
+      );
+    }
+    if (!process.env.KMFRI_DG_INITIAL_PASSWORD) {
+      console.warn(
+        `[auth] Director General account created. Generated password: ${dgPassword}`
       );
     }
     return initial;
@@ -530,20 +565,6 @@ export function loadDatabase(): DatabaseSnapshot {
       name: 'KMFRI System Administrator',
       position: 'Chief Information & Governance Administrator',
     },
-    {
-      id: '00000000-0000-4000-8000-000000000002',
-      staff: 'SYS-ADMIN-02',
-      email: 'admin@kmfri.go.ke',
-      name: 'KMFRI Institutional Administrator',
-      position: 'Senior Systems Administrator',
-    },
-    {
-      id: '00000000-0000-4000-8000-000000000003',
-      staff: 'SYS-ADMIN-03',
-      email: 'montanacode953@gmail.com',
-      name: 'System Administrator (Montana)',
-      position: 'Lead Systems Engineer & Administrator',
-    },
   ];
 
   for (const adm of adminAccounts) {
@@ -571,6 +592,33 @@ export function loadDatabase(): DatabaseSnapshot {
       });
       modified = true;
     }
+  }
+
+  const directorGeneral = db.users.find(
+    (candidate) => candidate.id === DIRECTOR_GENERAL_ID || candidate.email.toLowerCase() === 'dg@kmfri.go.ke'
+  );
+  if (!directorGeneral) {
+    db.users.push({
+      id: DIRECTOR_GENERAL_ID,
+      staff_number: 'SYS-DG-01',
+      email: 'dg@kmfri.go.ke',
+      full_name: 'Director General',
+      title: 'Prof.',
+      position: 'Director General / Chief Executive Officer',
+      role_id: ROLE_IDS[RoleCode.DIRECTOR],
+      role_code: RoleCode.DIRECTOR,
+      directorate_id: null,
+      research_area_id: null,
+      phone: '+254 20 8021560',
+      office_station: 'Mombasa Headquarters (English Point)',
+      is_active: true,
+      is_operational_scientist: false,
+      last_login_at: null,
+      password_reset_required: false,
+      created_at: now,
+      updated_at: now,
+    });
+    modified = true;
   }
 
   // Automate overdue report status evaluation on read
@@ -686,8 +734,6 @@ export function loadCredentials(): AuthCredentialRecord[] {
 
   const adminDefaults = [
     { email: 'sysadmin@kmfri.go.ke', id: '00000000-0000-4000-8000-000000000001' },
-    { email: 'admin@kmfri.go.ke', id: '00000000-0000-4000-8000-000000000002' },
-    { email: 'montanacode953@gmail.com', id: '00000000-0000-4000-8000-000000000003' },
   ];
 
   for (const adm of adminDefaults) {
@@ -705,6 +751,24 @@ export function loadCredentials(): AuthCredentialRecord[] {
           `[auth] Bootstrap admin "${adm.email}" created. Generated password: ${generated}`
         );
       }
+    }
+  }
+
+  const directorGeneralCredential = creds.find(
+    (credential) =>
+      credential.user_id === DIRECTOR_GENERAL_ID ||
+      credential.email.toLowerCase() === 'dg@kmfri.go.ke'
+  );
+  if (!directorGeneralCredential) {
+    const initialPassword = process.env.KMFRI_DG_INITIAL_PASSWORD || generateStrongPassword();
+    creds.push({
+      user_id: DIRECTOR_GENERAL_ID,
+      email: 'dg@kmfri.go.ke',
+      password_hash: hashPassword(initialPassword),
+    });
+    modified = true;
+    if (!process.env.KMFRI_DG_INITIAL_PASSWORD) {
+      console.warn(`[auth] Director General account created. Generated password: ${initialPassword}`);
     }
   }
 

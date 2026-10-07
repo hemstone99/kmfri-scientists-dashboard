@@ -496,9 +496,9 @@ apiRouter.post('/auth/quick-role-access', requireAuth, (req: AuthenticatedReques
       isOp: false,
     },
     [RoleCode.ADMIN]: {
-      email: 'admin@kmfri.go.ke',
-      staff: 'SYS-ADMIN-02',
-      name: 'Institutional Registry Admin',
+      email: 'role.admin@kmfri.go.ke',
+      staff: 'SYS-ROLE-ADMIN',
+      name: 'Institutional Admin Role Session',
       title: 'Mr.',
       pos: 'Senior Research Registry Administrator',
       dir: null,
