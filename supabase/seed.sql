@@ -54,16 +54,13 @@ WHERE code IN (
 INSERT INTO public.role_permissions (id, role_id, permission_id)
 SELECT gen_random_uuid(), r.id, p.id
 FROM public.roles r
-JOIN public.permissions p ON p.code IN (
-  CASE r.code
-    WHEN 'SUPER_ADMIN' THEN ('users:manage','users:view','users:reset_password','roles:manage','projects:create','projects:edit','projects:approve','projects:archive','funding:manage','reports:submit','reports:review','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','settings:manage','audit:view','export:data')
-    WHEN 'ADMIN' THEN ('users:manage','users:view','users:reset_password','projects:create','projects:edit','projects:archive','funding:manage','reports:submit','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','settings:manage','audit:view','export:data')
-    WHEN 'DIRECTOR' THEN ('users:view','projects:create','projects:edit','projects:approve','projects:archive','funding:manage','reports:review','reports:view','collaborators:manage','export:data')
-    WHEN 'HEAD_OCS' THEN ('users:view','projects:create','projects:edit','projects:approve','funding:manage','reports:submit','reports:review','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','export:data')
-    WHEN 'SCIENTIST' THEN ('projects:create','projects:edit','reports:submit','reports:view','locations:manage','outputs:manage','documents:manage','export:data')
-    WHEN 'VIEWER' THEN ('users:view','reports:view','export:data')
-    ELSE NULL
-  END
+JOIN public.permissions p ON (
+  (r.code = 'SUPER_ADMIN' AND p.code = ANY(ARRAY['users:manage','users:view','users:reset_password','roles:manage','projects:create','projects:edit','projects:approve','projects:archive','funding:manage','reports:submit','reports:review','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','settings:manage','audit:view','export:data']))
+  OR (r.code = 'ADMIN' AND p.code = ANY(ARRAY['users:manage','users:view','users:reset_password','projects:create','projects:edit','projects:archive','funding:manage','reports:submit','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','settings:manage','audit:view','export:data']))
+  OR (r.code = 'DIRECTOR' AND p.code = ANY(ARRAY['users:view','projects:create','projects:edit','projects:approve','projects:archive','funding:manage','reports:review','reports:view','collaborators:manage','export:data']))
+  OR (r.code = 'HEAD_OCS' AND p.code = ANY(ARRAY['users:view','projects:create','projects:edit','projects:approve','funding:manage','reports:submit','reports:review','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','export:data']))
+  OR (r.code = 'SCIENTIST' AND p.code = ANY(ARRAY['projects:create','projects:edit','reports:submit','reports:view','locations:manage','outputs:manage','documents:manage','export:data']))
+  OR (r.code = 'VIEWER' AND p.code = ANY(ARRAY['users:view','reports:view','export:data']))
 )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
