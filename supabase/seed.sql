@@ -15,30 +15,42 @@ INSERT INTO public.roles (id, code, name, description) VALUES
   ('10000000-0000-4000-8000-000000000006', 'VIEWER', 'VIEWER', 'Read-only stakeholder access to approved dashboards, project portfolios, locations, and published research outputs.')
 ON CONFLICT (code) DO NOTHING;
 
--- 2. Seed Granular Permissions
-INSERT INTO public.permissions (id, code, module, description) VALUES
-  ('20000000-0000-4000-8000-000000000001', 'users:manage', 'Administration', 'Create, update, deactivate, and reactivate scientist and user accounts'),
-  ('20000000-0000-4000-8000-000000000002', 'users:view', 'Administration', 'View scientist and user accounts (read-only)'),
-  ('20000000-0000-4000-8000-000000000003', 'users:reset_password', 'Administration', 'Initiate and execute password resets for user accounts'),
-  ('20000000-0000-4000-8000-000000000004', 'roles:manage', 'Administration', 'Manage RBAC role assignments and permission mappings'),
-  ('20000000-0000-4000-8000-000000000005', 'projects:create', 'Projects', 'Create new research project proposals'),
-  ('20000000-0000-4000-8000-000000000006', 'projects:edit', 'Projects', 'Update project metadata, milestones, deliverables, and progress'),
-  ('20000000-0000-4000-8000-000000000007', 'projects:approve', 'Projects', 'Approve, suspend, or cancel research projects'),
-  ('20000000-0000-4000-8000-000000000008', 'projects:archive', 'Projects', 'Archive or restore completed/cancelled projects'),
-  ('20000000-0000-4000-8000-000000000009', 'funding:manage', 'Funding', 'Create and update funders, grant awards, and budget allocations'),
-  ('20000000-0000-4000-8000-000000000010', 'reports:submit', 'Reports', 'Draft and submit project technical and progress reports'),
-  ('20000000-0000-4000-8000-000000000011', 'reports:review', 'Reports', 'Review, approve, or reject submitted scientist reports'),
-  ('20000000-0000-4000-8000-000000000012', 'reports:view', 'Reports', 'View completed and approved research reports'),
-  ('20000000-0000-4000-8000-000000000013', 'locations:manage', 'Locations', 'Register and edit GIS sampling stations and marine coordinates'),
-  ('20000000-0000-4000-8000-000000000014', 'collaborators:manage', 'Collaborators', 'Manage partner institutions and MOU agreements'),
-  ('20000000-0000-4000-8000-000000000015', 'outputs:manage', 'Research Outputs', 'Create and update publications, datasets, presentations, and technical reports'),
-  ('20000000-0000-4000-8000-000000000016', 'documents:manage', 'Documents', 'Upload, version, and manage research attachments'),
-  ('20000000-0000-4000-8000-000000000017', 'settings:manage', 'Administration', 'Configure institutional settings, reference tables, and deadlines'),
-  ('20000000-0000-4000-8000-000000000018', 'audit:view', 'Administration', 'Inspect immutable security and operational audit trails'),
-  ('20000000-0000-4000-8000-000000000019', 'export:data', 'System', 'Export datasets and analytics to CSV, Excel, and PDF formats')
+-- 2. Seed Granular Permissions (only insert missing ones, let DB auto-generate IDs for new entries)
+INSERT INTO public.permissions (code, module, description) VALUES
+  ('users:view', 'Administration', 'View scientist and user accounts (read-only)'),
+  ('reports:view', 'Reports', 'View completed and approved research reports')
 ON CONFLICT (code) DO NOTHING;
 
--- 3. Seed Role-Permission Mappings
+-- Ensure existing permissions have correct descriptions (in case they were updated)
+UPDATE public.permissions SET
+  description = CASE code
+    WHEN 'users:manage' THEN 'Create, update, deactivate, and reactivate scientist and user accounts'
+    WHEN 'users:reset_password' THEN 'Initiate and execute password resets for user accounts'
+    WHEN 'roles:manage' THEN 'Manage RBAC role assignments and permission mappings'
+    WHEN 'projects:create' THEN 'Create new research project proposals'
+    WHEN 'projects:edit' THEN 'Update project metadata, milestones, deliverables, and progress'
+    WHEN 'projects:approve' THEN 'Approve, suspend, or cancel research projects'
+    WHEN 'projects:archive' THEN 'Archive or restore completed/cancelled projects'
+    WHEN 'funding:manage' THEN 'Create and update funders, grant awards, and budget allocations'
+    WHEN 'reports:submit' THEN 'Draft and submit project technical and progress reports'
+    WHEN 'reports:review' THEN 'Review, approve, or reject submitted scientist reports'
+    WHEN 'locations:manage' THEN 'Register and edit GIS sampling stations and marine coordinates'
+    WHEN 'collaborators:manage' THEN 'Manage partner institutions and MOU agreements'
+    WHEN 'outputs:manage' THEN 'Create and update publications, datasets, presentations, and technical reports'
+    WHEN 'documents:manage' THEN 'Upload, version, and manage research attachments'
+    WHEN 'settings:manage' THEN 'Configure institutional settings, reference tables, and deadlines'
+    WHEN 'audit:view' THEN 'Inspect immutable security and operational audit trails'
+    WHEN 'export:data' THEN 'Export datasets and analytics to CSV, Excel, and PDF formats'
+    ELSE description
+  END
+WHERE code IN (
+  'users:manage','users:reset_password','roles:manage','projects:create','projects:edit',
+  'projects:approve','projects:archive','funding:manage','reports:submit','reports:review',
+  'locations:manage','collaborators:manage','outputs:manage','documents:manage',
+  'settings:manage','audit:view','export:data','users:view','reports:view'
+);
+
+-- 3. Seed Role-Permission Mappings (uses actual permission IDs from the table)
 INSERT INTO public.role_permissions (id, role_id, permission_id)
 SELECT gen_random_uuid(), r.id, p.id
 FROM public.roles r
