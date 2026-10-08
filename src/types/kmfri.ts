@@ -11,6 +11,7 @@ export enum RoleCode {
 
 export enum PermissionCode {
   USERS_MANAGE = 'users:manage',
+  USERS_VIEW = 'users:view',
   USERS_RESET_PASSWORD = 'users:reset_password',
   ROLES_MANAGE = 'roles:manage',
   PROJECTS_CREATE = 'projects:create',
@@ -20,6 +21,7 @@ export enum PermissionCode {
   FUNDING_MANAGE = 'funding:manage',
   REPORTS_SUBMIT = 'reports:submit',
   REPORTS_REVIEW = 'reports:review',
+  REPORTS_VIEW = 'reports:view',
   LOCATIONS_MANAGE = 'locations:manage',
   COLLABORATORS_MANAGE = 'collaborators:manage',
   OUTPUTS_MANAGE = 'outputs:manage',

@@ -18,25 +18,44 @@ ON CONFLICT (code) DO NOTHING;
 -- 2. Seed Granular Permissions
 INSERT INTO public.permissions (id, code, module, description) VALUES
   ('20000000-0000-4000-8000-000000000001', 'users:manage', 'Administration', 'Create, update, deactivate, and reactivate scientist and user accounts'),
-  ('20000000-0000-4000-8000-000000000002', 'users:reset_password', 'Administration', 'Initiate and execute password resets for user accounts'),
-  ('20000000-0000-4000-8000-000000000003', 'roles:manage', 'Administration', 'Manage RBAC role assignments and permission mappings'),
-  ('20000000-0000-4000-8000-000000000004', 'projects:create', 'Projects', 'Create new research project proposals'),
-  ('20000000-0000-4000-8000-000000000005', 'projects:edit', 'Projects', 'Update project metadata, milestones, deliverables, and progress'),
-  ('20000000-0000-4000-8000-000000000006', 'projects:approve', 'Projects', 'Approve, suspend, or cancel research projects'),
-  ('20000000-0000-4000-8000-000000000007', 'projects:archive', 'Projects', 'Archive or restore completed/cancelled projects'),
-  ('20000000-0000-4000-8000-000000000008', 'funding:manage', 'Funding', 'Create and update funders, grant awards, and budget allocations'),
-  ('20000000-0000-4000-8000-000000000009', 'reports:submit', 'Reports', 'Draft and submit project technical and progress reports'),
-  ('20000000-0000-4000-8000-000000000010', 'reports:review', 'Reports', 'Review, approve, or reject submitted scientist reports'),
-  ('20000000-0000-4000-8000-000000000011', 'locations:manage', 'Locations', 'Register and edit GIS sampling stations and marine coordinates'),
-  ('20000000-0000-4000-8000-000000000012', 'collaborators:manage', 'Collaborators', 'Manage partner institutions and MOU agreements'),
-  ('20000000-0000-4000-8000-000000000013', 'outputs:manage', 'Research Outputs', 'Create and update publications, datasets, presentations, and technical reports'),
-  ('20000000-0000-4000-8000-000000000014', 'documents:manage', 'Documents', 'Upload, version, and manage research attachments'),
-  ('20000000-0000-4000-8000-000000000015', 'settings:manage', 'Administration', 'Configure institutional settings, reference tables, and deadlines'),
-  ('20000000-0000-4000-8000-000000000016', 'audit:view', 'Administration', 'Inspect immutable security and operational audit trails'),
-  ('20000000-0000-4000-8000-000000000017', 'export:data', 'System', 'Export datasets and analytics to CSV, Excel, and PDF formats')
+  ('20000000-0000-4000-8000-000000000002', 'users:view', 'Administration', 'View scientist and user accounts (read-only)'),
+  ('20000000-0000-4000-8000-000000000003', 'users:reset_password', 'Administration', 'Initiate and execute password resets for user accounts'),
+  ('20000000-0000-4000-8000-000000000004', 'roles:manage', 'Administration', 'Manage RBAC role assignments and permission mappings'),
+  ('20000000-0000-4000-8000-000000000005', 'projects:create', 'Projects', 'Create new research project proposals'),
+  ('20000000-0000-4000-8000-000000000006', 'projects:edit', 'Projects', 'Update project metadata, milestones, deliverables, and progress'),
+  ('20000000-0000-4000-8000-000000000007', 'projects:approve', 'Projects', 'Approve, suspend, or cancel research projects'),
+  ('20000000-0000-4000-8000-000000000008', 'projects:archive', 'Projects', 'Archive or restore completed/cancelled projects'),
+  ('20000000-0000-4000-8000-000000000009', 'funding:manage', 'Funding', 'Create and update funders, grant awards, and budget allocations'),
+  ('20000000-0000-4000-8000-000000000010', 'reports:submit', 'Reports', 'Draft and submit project technical and progress reports'),
+  ('20000000-0000-4000-8000-000000000011', 'reports:review', 'Reports', 'Review, approve, or reject submitted scientist reports'),
+  ('20000000-0000-4000-8000-000000000012', 'reports:view', 'Reports', 'View completed and approved research reports'),
+  ('20000000-0000-4000-8000-000000000013', 'locations:manage', 'Locations', 'Register and edit GIS sampling stations and marine coordinates'),
+  ('20000000-0000-4000-8000-000000000014', 'collaborators:manage', 'Collaborators', 'Manage partner institutions and MOU agreements'),
+  ('20000000-0000-4000-8000-000000000015', 'outputs:manage', 'Research Outputs', 'Create and update publications, datasets, presentations, and technical reports'),
+  ('20000000-0000-4000-8000-000000000016', 'documents:manage', 'Documents', 'Upload, version, and manage research attachments'),
+  ('20000000-0000-4000-8000-000000000017', 'settings:manage', 'Administration', 'Configure institutional settings, reference tables, and deadlines'),
+  ('20000000-0000-4000-8000-000000000018', 'audit:view', 'Administration', 'Inspect immutable security and operational audit trails'),
+  ('20000000-0000-4000-8000-000000000019', 'export:data', 'System', 'Export datasets and analytics to CSV, Excel, and PDF formats')
 ON CONFLICT (code) DO NOTHING;
 
--- 3. Seed KMFRI Directorates (Official Non-Operational Reference Data)
+-- 3. Seed Role-Permission Mappings
+INSERT INTO public.role_permissions (id, role_id, permission_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM public.roles r
+JOIN public.permissions p ON p.code IN (
+  CASE r.code
+    WHEN 'SUPER_ADMIN' THEN ('users:manage','users:view','users:reset_password','roles:manage','projects:create','projects:edit','projects:approve','projects:archive','funding:manage','reports:submit','reports:review','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','settings:manage','audit:view','export:data')
+    WHEN 'ADMIN' THEN ('users:manage','users:view','users:reset_password','projects:create','projects:edit','projects:archive','funding:manage','reports:submit','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','settings:manage','audit:view','export:data')
+    WHEN 'DIRECTOR' THEN ('users:view','projects:create','projects:edit','projects:approve','projects:archive','funding:manage','reports:review','reports:view','collaborators:manage','export:data')
+    WHEN 'HEAD_OCS' THEN ('users:view','projects:create','projects:edit','projects:approve','funding:manage','reports:submit','reports:review','reports:view','locations:manage','collaborators:manage','outputs:manage','documents:manage','export:data')
+    WHEN 'SCIENTIST' THEN ('projects:create','projects:edit','reports:submit','reports:view','locations:manage','outputs:manage','documents:manage','export:data')
+    WHEN 'VIEWER' THEN ('users:view','reports:view','export:data')
+    ELSE NULL
+  END
+)
+ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- 4. Seed KMFRI Directorates (Official Non-Operational Reference Data)
 INSERT INTO public.directorates (id, code, name, headquarters, description, is_active) VALUES
   ('30000000-0000-4000-8000-000000000001', 'OCS', 'Oceans and Coastal Systems', 'Mombasa Headquarters (English Point)', 'Leads marine ecology, oceanography, coral reef conservation, blue carbon ecosystems, and Exclusive Economic Zone (EEZ) fisheries research.', TRUE),
   ('30000000-0000-4000-8000-000000000002', 'FWS', 'Freshwater Systems', 'Kisumu Research Centre', 'Coordinates limnological, stock assessment, and catchment biodiversity research across Lake Victoria, Lake Turkana, Lake Baringo, and Lake Naivasha.', TRUE),

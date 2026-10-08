@@ -101,6 +101,34 @@ export function AdminModule() {
 
   const [activeTab, setActiveTab] = useState<AdminTab>('audit_logs');
 
+  // Compute visible tabs based on permissions
+  const canViewAudit = hasPermission(PermissionCode.AUDIT_VIEW);
+  const canViewUsers = hasPermission(PermissionCode.USERS_VIEW);
+  const canManageUsers = hasPermission(PermissionCode.USERS_MANAGE);
+  const canManageRoles = hasPermission(PermissionCode.ROLES_MANAGE);
+  const canManageSettings = hasPermission(PermissionCode.SETTINGS_MANAGE);
+  const canManageDirectorates = hasPermission(PermissionCode.SETTINGS_MANAGE); // uses same permission
+  const canManageResearchAreas = hasPermission(PermissionCode.SETTINGS_MANAGE); // uses same permission
+  const canExport = hasPermission(PermissionCode.EXPORT_DATA);
+
+  // Filter tabs based on permissions
+  const visibleTabs = [
+    { id: 'audit_logs', label: `Audit Log (${db.audit_logs.length})`, visible: canViewAudit },
+    { id: 'users', label: `Users & Accounts (${db.users.length})`, visible: canViewUsers },
+    { id: 'rbac', label: 'Roles & Permissions Matrix', visible: canManageRoles },
+    { id: 'directorates', label: `Directorates (${db.directorates.length})`, visible: canManageDirectorates },
+    { id: 'research_areas', label: `Research Areas (${db.research_areas.length})`, visible: canManageResearchAreas },
+    { id: 'settings', label: 'System Settings', visible: canManageSettings },
+    { id: 'exports_sql', label: 'Imports / Exports & SQL Schema', visible: canExport },
+  ].filter((t) => t.visible) as Array<{ id: AdminTab; label: string; visible: boolean }>;
+
+  // Ensure activeTab is valid; fallback to first visible tab
+  useEffect(() => {
+    if (!visibleTabs.some((t) => t.id === activeTab)) {
+      setActiveTab(visibleTabs[0]?.id || 'audit_logs');
+    }
+  }, [visibleTabs, activeTab]);
+
   // Audit Log Filters
   const [auditSearch, setAuditSearch] = useState('');
   const [auditCategory, setAuditCategory] = useState<AuditCategoryFilter>('all');
@@ -330,16 +358,6 @@ export function AdminModule() {
     }
   };
 
-  const adminTabs: Array<{ id: AdminTab; label: string }> = [
-    { id: 'audit_logs', label: `Audit Log (${db.audit_logs.length})` },
-    { id: 'users', label: `Users & Accounts (${db.users.length})` },
-    { id: 'rbac', label: 'Roles & Permissions Matrix' },
-    { id: 'directorates', label: `Directorates (${db.directorates.length})` },
-    { id: 'research_areas', label: `Research Areas (${db.research_areas.length})` },
-    { id: 'settings', label: 'System Settings' },
-    { id: 'exports_sql', label: 'Imports / Exports & SQL Schema' },
-  ];
-
   // Summary counts for Audit Log KPI bar
   const createCount = db.audit_logs.filter(
     (l) => classifyAuditAction(l.action).category === 'create'
@@ -370,19 +388,21 @@ export function AdminModule() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveModule('scientists')}
-              className="px-3 py-1.5 rounded-lg bg-[#0A2540] dark:bg-sky-600 text-white text-xs font-semibold"
-            >
-              + Create Researcher Account
-            </button>
+            {canManageUsers && (
+              <button
+                type="button"
+                onClick={() => setActiveModule('scientists')}
+                className="px-3 py-1.5 rounded-lg bg-[#0A2540] dark:bg-sky-600 text-white text-xs font-semibold"
+              >
+                + Create Researcher Account
+              </button>
+            )}
           </div>
         </div>
 
         {/* Sub-Navigation */}
         <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center gap-1 overflow-x-auto pb-1">
-          {adminTabs.map((t) => (
+          {visibleTabs.map((t) => (
             <button
               key={t.id}
               type="button"
